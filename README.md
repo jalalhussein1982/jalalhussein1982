@@ -2,7 +2,8 @@
 
 **Data Engineer · Full-Stack Engineer · AI/LLM Engineer** — I design, build, and *operate* production
 systems end to end: ingestion pipelines that survive failure, web applications people use daily, and
-LLM systems with evaluation and guardrails rather than vibes.
+LLM systems with evaluation and guardrails rather than vibes — and **MCP servers** that give an agent
+governed access to those systems.
 
 📍 Prague, Czechia &nbsp;·&nbsp; 🎓 MA Geopolitical Studies, Charles University &nbsp;·&nbsp; 📫 [jalalhussein@gmail.com](mailto:jalalhussein@gmail.com) &nbsp;·&nbsp; 💼 [LinkedIn](https://linkedin.com/in/jalal-hussein-prg)
 
@@ -29,9 +30,23 @@ I am equally comfortable writing the React front end that makes it usable, and I
 **Backend:** FastAPI (async, Pydantic v2) · NestJS · REST/OpenAPI · Server-Sent Events · WebSockets
 **Frontend:** React 18/19 · Next.js · Astro · Vite · Tailwind · Mapbox GL JS · ECharts · Streamlit
 **Data:** PostgreSQL (psycopg 3, SQLAlchemy 2, Alembic) · **PostGIS** · **pgvector** · **Neo4j** · Qdrant · SQLite · Redis · Parquet
-**AI / LLM:** RAG with hybrid retrieval (BM25 ⊕ dense, reciprocal-rank fusion) · rerankers · citation verification and validator gates · structured outputs · evaluation harnesses · token/cost metering · self-hosted open-weight models on **vLLM**
+**AI / LLM:** RAG with hybrid retrieval (BM25 ⊕ dense, reciprocal-rank fusion) · rerankers · citation verification and validator gates · structured outputs · evaluation harnesses · token/cost metering · self-hosted open-weight models on **vLLM** · **MCP servers** (Python MCP SDK 2.x: tools, resources and prompts with typed output schemas; stdio and Streamable HTTP; OAuth 2.1 resource servers with per-tool scopes; Multi Round-Trip Requests for human-confirmed destructive actions; durable job handles with progress notifications)
 **Infra:** **Kubernetes** (Kustomize, StatefulSets, CronJobs, RBAC, sealed secrets, NetworkPolicies, CloudNativePG) · Docker · **Terraform / Bicep** · **Azure** (Container Apps, Functions, Key Vault, AI Search, Entra) · GitHub Actions · Prometheus/Grafana
 **HPC:** **MetaCentrum** PBS batch · Apptainer/Singularity images · GPU jobs on H100-class nodes
+
+## 🔌 MCP servers
+
+Five MCP (Model Context Protocol) servers over systems I built and operate, each giving a host model governed
+access to a production system. Use case first, then what it took to build. Python MCP SDK 2.x, protocol
+revision 2026-07-28.
+
+| Server | What an agent can do with it | What it took |
+|---|---|---|
+| **[ihkam-eval-mcp](https://github.com/jalalhussein1982/ihkam-eval-mcp)** | Read the lawyer-verified golden set, the frozen A/B artifacts and the two-sided acceptance gate behind a legal RAG, so a retrieval change is judged on recorded numbers before it ships. The corpus and the red-team payload never leave the host. | Seven read-only tools, three resources and a prompt expose the gate (lost = 0, recall@10 ≥ 0.98, every style ≥ 0.95) as data; stdio transport; every number verified against the recorded artifacts. |
+| **[siem-mcp](https://github.com/jalalhussein1982/conflict-trends-dashboard/tree/main/phase1/siem-mcp)** | Question the Sahel conflict-event platform — trends, lethality per event, actor composition, admin-1 hotspots, radius and bounding-box queries, ingestion freshness — with no licensed ACLED text in any result. | Nine typed tools behind one store interface: a synthetic SQLite backend ships with the code, live PostGIS (`ST_DWithin` for radius queries) in production. |
+| **hostel-ops-mcp** *(private — walk-through on request)* | Run the front desk of a hostel's statutory guest-registration system from Claude Desktop, Claude Code or a remote host: triage the queue, flag minors, approve or return submissions, manage group bookings, prepare the authority export — seeing only the personal data its scope grants, erasing nothing a human has not confirmed. | OAuth 2.1 resource server over Streamable HTTP (JWTs against the issuer's JWKS, RFC 9728 metadata), nine per-tool scopes; a fail-closed redaction table over every column and a test that scans every read for every PII literal; writes run the app's own state machine and audit; erasure confirmed through Multi Round-Trip Requests with a sealed request state bound to tool, arguments and caller. 165 tests. |
+| **geoecon-pipeline-mcp** *(private — walk-through on request)* | Operate a long-running LLM news pipeline from a chat: inspect runs, read what the validator held back, resume a failed run from the right stage with its original window, watch progress, stay inside an LLM budget, write the incident report in the house format. | Long-running jobs on a stateless transport: durable PostgreSQL-backed job handles, progress from the pipeline's own logs and row counts, `ResourceUpdated` notifications over `subscriptions/listen`, a cost gate that estimates each LLM stage first and parks the job in `input_required` above budget; Job model mapped onto the MCP tasks extension. 151 tests. |
+| **coin-wargame-mcp** *(private — walk-through on request)* | Any host model plays the Mauritania COIN wargame as Government or Red Team through tools instead of vendor-specific prompt glue; two hosts can share one game; every game replays from its seed; a benchmark that only speaks MCP scores models on identical scenarios against a rule-based floor. | Stateful games on a stateless transport: every call loads a SQLite row, rebuilds the engine, acts and writes back under a version check; dice state persisted per call; `replay()` verifies a recorded state hash per log entry; illegal moves come back as errors carrying the engine's reasons and legal alternatives; fog of war enforced by type. 73 tests. |
 
 ## ⭐ Featured projects
 
